@@ -8,6 +8,9 @@ import { AlertsPanel } from "@/components/dashboard/alerts-panel"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { ArrowUpDown } from "lucide-react"
 import {
   Users,
   UserCheck,
@@ -41,6 +44,39 @@ const attendanceData = [
   { day: "ส", present: 10, late: 0, absent: 0 },
   { day: "อา", present: 8, late: 0, absent: 0 },
 ]
+
+type RosterStatus = "on_time" | "late" | "very_late" | "absent" | "leave"
+
+type AttendanceRosterItem = {
+  id: string
+  name: string
+  station: string
+  checkInTime?: string
+  lateMinutes?: number
+  leaveType?: string
+  status: RosterStatus
+}
+
+const attendanceRoster: AttendanceRosterItem[] = [
+  { id: "s1", name: "สมชาย ใจดี", station: "จุดสแกน A - ด่านหลัก", checkInTime: "08:02", lateMinutes: 0, status: "on_time" },
+  { id: "s2", name: "สมหญิง รักงาน", station: "จุดสแกน B - หน่วยพิทักษ์", checkInTime: "08:18", lateMinutes: 18, status: "late" },
+  { id: "s3", name: "สมศักดิ์ ขยัน", station: "จุดสแกน A - ด่านหลัก", checkInTime: "07:58", lateMinutes: 0, status: "on_time" },
+  { id: "s4", name: "สมศรี มาสาย", station: "จุดสแกน C - ป่าไม้", checkInTime: "08:45", lateMinutes: 45, status: "very_late" },
+  { id: "s5", name: "สมปอง ลางาน", station: "จุดสแกน C - ป่าไม้", leaveType: "ลาป่วย", status: "leave" },
+  { id: "s6", name: "สมบุญ ตรงเวลา", station: "จุดสแกน B - หน่วยพิทักษ์", checkInTime: "08:00", lateMinutes: 0, status: "on_time" },
+  { id: "s7", name: "สมหมาย ไม่มา", station: "จุดสแกน D - หน่วยรักษาการ", status: "absent" },
+  { id: "s8", name: "สมพร ขอลา", station: "จุดสแกน A - ด่านหลัก", leaveType: "ลากิจ", status: "leave" },
+  { id: "s9", name: "สมคิด สายนิดหน่อย", station: "จุดสแกน B - หน่วยพิทักษ์", checkInTime: "08:12", lateMinutes: 12, status: "late" },
+  { id: "s10", name: "สมจิตร ยังไม่มา", station: "จุดสแกน C - ป่าไม้", status: "absent" },
+]
+
+const toMinutes = (time?: string) => {
+  if (!time) return Number.MAX_SAFE_INTEGER
+  const [hourText, minuteText] = time.split(":")
+  const hours = Number(hourText)
+  const minutes = Number(minuteText)
+  return hours * 60 + minutes
+}
 
 const weeklyTrend = [
   { week: "สัปดาห์ 1", rate: 92 },
@@ -119,6 +155,41 @@ const alerts = [
 
 export default function DashboardPage() {
   const [role, setRole] = React.useState<"admin" | "staff">("admin")
+  const [sortOrder, setSortOrder] = React.useState<"earliest" | "latest">("earliest")
+
+  const presentRoster = React.useMemo(
+    () =>
+      attendanceRoster
+        .filter((item) => item.status === "on_time" || item.status === "late" || item.status === "very_late")
+        .sort((a, b) => {
+          const priority: Record<RosterStatus, number> = {
+            on_time: 0,
+            late: 1,
+            very_late: 2,
+            absent: 3,
+            leave: 4,
+          }
+          if (priority[a.status] !== priority[b.status]) {
+            return priority[a.status] - priority[b.status]
+          }
+          const diff = toMinutes(a.checkInTime) - toMinutes(b.checkInTime)
+          return sortOrder === "earliest" ? diff : -diff
+        }),
+    [sortOrder]
+  )
+
+  const absentRoster = React.useMemo(
+    () => attendanceRoster.filter((item) => item.status === "absent"),
+    []
+  )
+
+  const leaveRoster = React.useMemo(
+    () => attendanceRoster.filter((item) => item.status === "leave"),
+    []
+  )
+
+  const onTimeCount = presentRoster.filter((item) => item.status === "on_time").length
+  const lateCount = presentRoster.filter((item) => item.status === "late" || item.status === "very_late").length
 
   return (
     <DashboardLayout role={role}>
@@ -153,15 +224,15 @@ export default function DashboardPage() {
           />
           <StatCard
             title="มาแล้ววันนี้"
-            value={20}
-            description="ตรงเวลา 18 คน, สาย 2 คน"
+            value={presentRoster.length}
+            description={`ตรงเวลา ${onTimeCount} คน, สาย ${lateCount} คน`}
             icon={UserCheck}
             trend={{ value: 5, isPositive: true }}
             variant="success"
           />
           <StatCard
             title="สาย"
-            value={3}
+            value={lateCount}
             description="เฉลี่ย 12 นาที"
             icon={Clock}
             trend={{ value: 2, isPositive: false }}
@@ -169,12 +240,110 @@ export default function DashboardPage() {
           />
           <StatCard
             title="ขาด / ลา"
-            value={2}
-            description="ขาด 0 คน, ลา 2 คน"
+            value={absentRoster.length + leaveRoster.length}
+            description={`ขาด ${absentRoster.length} คน, ลา ${leaveRoster.length} คน`}
             icon={UserX}
             variant="default"
           />
         </div>
+
+        {/* Attendance Name Lists */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" />
+                รายชื่อการมาปฏิบัติงานวันนี้
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSortOrder(sortOrder === "earliest" ? "latest" : "earliest")}
+              >
+                <ArrowUpDown className="w-4 h-4 mr-1" />
+                {sortOrder === "earliest" ? "เร็วสุดก่อน" : "ช้าสุดก่อน"}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="present" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="present">มาแล้ว ({presentRoster.length})</TabsTrigger>
+                <TabsTrigger value="absent">ขาด ({absentRoster.length})</TabsTrigger>
+                <TabsTrigger value="leave">ลา ({leaveRoster.length})</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="present" className="mt-4 space-y-3">
+                {presentRoster.map((item) => {
+                  const statusVariant =
+                    item.status === "on_time"
+                      ? "bg-green-100 text-green-700"
+                      : item.status === "late"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-red-100 text-red-700"
+                  const statusLabel =
+                    item.status === "on_time"
+                      ? "ตรงเวลา"
+                      : item.status === "late"
+                      ? `มาสาย ${item.lateMinutes} นาที`
+                      : `มาสายมาก ${item.lateMinutes} นาที`
+
+                  return (
+                    <div key={item.id} className="flex items-center justify-between rounded-lg border p-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarFallback>{item.name.slice(0, 2)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-semibold">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">{item.station}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{item.checkInTime} น.</span>
+                        <Badge className={statusVariant}>{statusLabel}</Badge>
+                      </div>
+                    </div>
+                  )
+                })}
+              </TabsContent>
+
+              <TabsContent value="absent" className="mt-4 space-y-3">
+                {absentRoster.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between rounded-lg border p-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback>{item.name.slice(0, 2)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-semibold">{item.name}</p>
+                        <p className="text-xs text-muted-foreground">{item.station}</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-red-100 text-red-700">ขาดงาน</Badge>
+                  </div>
+                ))}
+              </TabsContent>
+
+              <TabsContent value="leave" className="mt-4 space-y-3">
+                {leaveRoster.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between rounded-lg border p-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback>{item.name.slice(0, 2)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-semibold">{item.name}</p>
+                        <p className="text-xs text-muted-foreground">{item.station}</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-blue-100 text-blue-700">{item.leaveType ?? "ลา"}</Badge>
+                  </div>
+                ))}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

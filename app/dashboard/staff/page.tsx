@@ -160,7 +160,7 @@ export default function StaffDashboardPage() {
                     วิธีเช็คชื่อ
                   </p>
                   <ol className="mt-1 text-yellow-700 dark:text-yellow-300 list-decimal list-inside space-y-1">
-                    <li>กดปุ่ม "เช็คชื่อเข้า" หรือ "เช็คชื่อออก"</li>
+                    <li>กดปุ่มเช็คชื่อเข้า หรือ เช็คชื่อออก</li>
                     <li>สแกน QR Code ที่จุดสแกน</li>
                     <li>ระบบจะตรวจสอบ GPS และอุปกรณ์</li>
                     <li>ถ่ายเซลฟี่เพื่อยืนยันตัวตน</li>
