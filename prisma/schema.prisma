@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String
+  password    String?  // For email/password auth
+  lineId      String?  // For LINE login
+  role        Role     @default(STAFF)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  attendance  Attendance[]
+  leaveRequests LeaveRequest[]
+  createdStations Station[] @relation("StationCreator")
+
+  @@map("users")
+}
+
+model Station {
+  id          String   @id @default(cuid())
+  name        String
+  location    String
+  description String?
+  qrCode      String   // QR code content/URL
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String
+  creator     User     @relation("StationCreator", fields: [createdBy], references: [id])
+
+  // Relations
+  attendance  Attendance[]
+
+  @@map("stations")
+}
+
+model Attendance {
+  id         String   @id @default(cuid())
+  userId     String
+  stationId  String
+  checkInAt  DateTime @default(now())
+  checkOutAt DateTime?
+  status     AttendanceStatus @default(PRESENT)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  user       User     @relation(fields: [userId], references: [id])
+  station    Station  @relation(fields: [stationId], references: [id])
+
+  @@map("attendance")
+}
+
+model LeaveRequest {
+  id          String       @id @default(cuid())
+  userId      String
+  type        LeaveType
+  startDate   DateTime
+  endDate     DateTime
+  days        Int          // Calculated days (excluding weekends)
+  reason      String
+  status      LeaveStatus  @default(PENDING)
+  rejectionReason String?
+  processedBy String?      // Admin who processed
+  processedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  user        User         @relation(fields: [userId], references: [id])
+
+  @@map("leave_requests")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?  // User who performed action (null for system)
+  action    String   // Action performed
+  resource  String   // Resource type (user, attendance, leave_request, etc.)
+  resourceId String? // ID of the resource
+  oldData   Json?    // Previous state
+  newData   Json?    // New state
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+// Enums
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  VERY_LATE
+  ABSENT
+  LEAVE
+}
+
+enum LeaveType {
+  MONTHLY_QUOTA    // หยุดประจำเดือน (ตามโควต้า)
+  SICK_LEAVE       // ลาป่วย
+  PERSONAL_LEAVE   // ลากิจส่วนตัว
+  VACATION_LEAVE   // ลาพักผ่อน
+  MATERNITY_LEAVE   // ลาคลอดเรียน
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}

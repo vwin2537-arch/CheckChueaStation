@@ -29,9 +29,7 @@ const adminNavItems = [
   { title: "แดชบอร์ด", href: "/dashboard", icon: LayoutDashboard },
   { title: "เจ้าหน้าที่", href: "/dashboard/admin/staff", icon: Users },
   { title: "จุดสแกน", href: "/dashboard/admin/stations", icon: MapPin },
-  { title: "รายงาน", href: "/dashboard/reports", icon: FileText },
-  { title: "แจ้งเตือน", href: "/dashboard/alerts", icon: Bell },
-  { title: "ตั้งค่า", href: "/dashboard/settings", icon: Settings },
+  { title: "อนุมัติลา", href: "/dashboard/admin/leave-approval", icon: Calendar },
 ]
 
 const staffNavItems = [
