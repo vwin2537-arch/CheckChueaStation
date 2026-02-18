@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useAppSession } from "@/components/auth/session-provider"
 
 interface SidebarProps {
   role?: "admin" | "staff"
@@ -27,15 +28,15 @@ interface SidebarProps {
 
 const adminNavItems = [
   { title: "แดชบอร์ด", href: "/dashboard", icon: LayoutDashboard },
-  { title: "เจ้าหน้าที่", href: "/dashboard/staff", icon: Users },
-  { title: "จุดสแกน", href: "/dashboard/stations", icon: MapPin },
+  { title: "เจ้าหน้าที่", href: "/dashboard/admin/staff", icon: Users },
+  { title: "จุดสแกน", href: "/dashboard/admin/stations", icon: MapPin },
   { title: "รายงาน", href: "/dashboard/reports", icon: FileText },
   { title: "แจ้งเตือน", href: "/dashboard/alerts", icon: Bell },
   { title: "ตั้งค่า", href: "/dashboard/settings", icon: Settings },
 ]
 
 const staffNavItems = [
-  { title: "หน้าหลัก", href: "/dashboard", icon: LayoutDashboard },
+  { title: "หน้าหลัก", href: "/dashboard/staff", icon: LayoutDashboard },
   { title: "เช็คชื่อ", href: "/dashboard/scan", icon: MapPin },
   { title: "ประวัติ", href: "/dashboard/history", icon: Calendar },
   { title: "แจ้งลา", href: "/dashboard/leave", icon: FileText },
@@ -45,6 +46,9 @@ const staffNavItems = [
 export function Sidebar({ role = "staff", collapsed = false, onToggle }: SidebarProps) {
   const pathname = usePathname()
   const navItems = role === "admin" ? adminNavItems : staffNavItems
+  const homeHref = role === "admin" ? "/dashboard" : "/dashboard/staff"
+  const session = useAppSession()
+  const fallbackInitials = session.displayName.trim().slice(0, 2) || "US"
 
   return (
     <div
@@ -55,7 +59,7 @@ export function Sidebar({ role = "staff", collapsed = false, onToggle }: Sidebar
     >
       {/* Logo */}
       <div className="flex items-center h-16 px-4 border-b border-border">
-        <Link href="/dashboard" className="flex items-center gap-2">
+        <Link href={homeHref} className="flex items-center gap-2">
           <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-600">
             <Flame className="w-6 h-6 text-white" />
           </div>
@@ -95,11 +99,11 @@ export function Sidebar({ role = "staff", collapsed = false, onToggle }: Sidebar
         <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}>
           <Avatar className="w-9 h-9">
             <AvatarImage src="/avatar.png" alt="User" />
-            <AvatarFallback>SN</AvatarFallback>
+            <AvatarFallback>{fallbackInitials}</AvatarFallback>
           </Avatar>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">สมชาย ใจดี</p>
+              <p className="text-sm font-medium truncate">{session.displayName}</p>
               <p className="text-xs text-muted-foreground truncate">
                 {role === "admin" ? "หัวหน้าสถานี" : "เจ้าหน้าที่"}
               </p>
@@ -107,9 +111,11 @@ export function Sidebar({ role = "staff", collapsed = false, onToggle }: Sidebar
           )}
         </div>
         {!collapsed && (
-          <Button variant="ghost" size="sm" className="w-full mt-3 justify-start text-muted-foreground">
-            <LogOut className="w-4 h-4 mr-2" />
-            ออกจากระบบ
+          <Button asChild variant="ghost" size="sm" className="w-full mt-3 justify-start text-muted-foreground">
+            <Link href="/auth/logout">
+              <LogOut className="w-4 h-4 mr-2" />
+              ออกจากระบบ
+            </Link>
           </Button>
         )}
       </div>

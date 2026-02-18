@@ -154,7 +154,6 @@ const alerts = [
 ]
 
 export default function DashboardPage() {
-  const [role, setRole] = React.useState<"admin" | "staff">("admin")
   const [sortOrder, setSortOrder] = React.useState<"earliest" | "latest">("earliest")
 
   const presentRoster = React.useMemo(
@@ -192,7 +191,7 @@ export default function DashboardPage() {
   const lateCount = presentRoster.filter((item) => item.status === "late" || item.status === "very_late").length
 
   return (
-    <DashboardLayout role={role}>
+    <DashboardLayout role="admin">
       <div className="space-y-6">
         {/* Page Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -206,9 +205,6 @@ export default function DashboardPage() {
             <Button variant="outline" size="sm">
               <Download className="w-4 h-4 mr-2" />
               ส่งออกรายงาน
-            </Button>
-            <Button size="sm" onClick={() => setRole(role === "admin" ? "staff" : "admin")}>
-              สลับบทบาท ({role === "admin" ? "Admin" : "Staff"})
             </Button>
           </div>
         </div>

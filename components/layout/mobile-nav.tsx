@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useAppSession } from "@/components/auth/session-provider"
 
 interface MobileNavProps {
   open: boolean
@@ -26,15 +27,15 @@ interface MobileNavProps {
 
 const adminNavItems = [
   { title: "แดชบอร์ด", href: "/dashboard", icon: LayoutDashboard },
-  { title: "เจ้าหน้าที่", href: "/dashboard/staff", icon: Users },
-  { title: "จุดสแกน", href: "/dashboard/stations", icon: MapPin },
+  { title: "เจ้าหน้าที่", href: "/dashboard/admin/staff", icon: Users },
+  { title: "จุดสแกน", href: "/dashboard/admin/stations", icon: MapPin },
   { title: "รายงาน", href: "/dashboard/reports", icon: FileText },
   { title: "แจ้งเตือน", href: "/dashboard/alerts", icon: Bell },
   { title: "ตั้งค่า", href: "/dashboard/settings", icon: Settings },
 ]
 
 const staffNavItems = [
-  { title: "หน้าหลัก", href: "/dashboard", icon: LayoutDashboard },
+  { title: "หน้าหลัก", href: "/dashboard/staff", icon: LayoutDashboard },
   { title: "เช็คชื่อ", href: "/dashboard/scan", icon: MapPin },
   { title: "ประวัติ", href: "/dashboard/history", icon: Calendar },
   { title: "แจ้งลา", href: "/dashboard/leave", icon: FileText },
@@ -44,6 +45,9 @@ const staffNavItems = [
 export function MobileNav({ open, onClose, role = "staff" }: MobileNavProps) {
   const pathname = usePathname()
   const navItems = role === "admin" ? adminNavItems : staffNavItems
+  const homeHref = role === "admin" ? "/dashboard" : "/dashboard/staff"
+  const session = useAppSession()
+  const fallbackInitials = session.displayName.trim().slice(0, 2) || "US"
 
   if (!open) return null
 
@@ -59,7 +63,7 @@ export function MobileNav({ open, onClose, role = "staff" }: MobileNavProps) {
       <div className="fixed inset-y-0 left-0 z-50 w-[280px] bg-card shadow-xl lg:hidden">
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-border">
-          <Link href="/dashboard" className="flex items-center gap-2">
+          <Link href={homeHref} className="flex items-center gap-2">
             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-600">
               <Flame className="w-6 h-6 text-white" />
             </div>
@@ -101,17 +105,17 @@ export function MobileNav({ open, onClose, role = "staff" }: MobileNavProps) {
           <div className="flex items-center gap-3">
             <Avatar className="w-10 h-10">
               <AvatarImage src="/avatar.png" alt="User" />
-              <AvatarFallback>SN</AvatarFallback>
+              <AvatarFallback>{fallbackInitials}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">สมชาย ใจดี</p>
+              <p className="text-sm font-medium truncate">{session.displayName}</p>
               <p className="text-xs text-muted-foreground truncate">
                 {role === "admin" ? "หัวหน้าสถานี" : "เจ้าหน้าที่"}
               </p>
             </div>
           </div>
-          <Button variant="outline" className="w-full mt-3">
-            ออกจากระบบ
+          <Button asChild variant="outline" className="w-full mt-3">
+            <Link href="/auth/logout">ออกจากระบบ</Link>
           </Button>
         </div>
       </div>

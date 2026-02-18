@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { Bell, Menu, Search, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { useAppSession } from "@/components/auth/session-provider"
 
 interface HeaderProps {
   onMenuClick?: () => void
@@ -22,6 +24,9 @@ interface HeaderProps {
 
 export function Header({ onMenuClick, showMenuButton = true }: HeaderProps) {
   const [theme, setTheme] = React.useState<"light" | "dark">("light")
+  const session = useAppSession()
+  const firstName = session.displayName.trim().split(" ")[0] || "ผู้ใช้งาน"
+  const fallbackInitials = firstName.slice(0, 2)
 
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light")
@@ -111,17 +116,17 @@ export function Header({ onMenuClick, showMenuButton = true }: HeaderProps) {
             <Button variant="ghost" className="gap-2 pl-2 pr-3">
               <Avatar className="w-8 h-8">
                 <AvatarImage src="/avatar.png" alt="User" />
-                <AvatarFallback>SN</AvatarFallback>
+                <AvatarFallback>{fallbackInitials}</AvatarFallback>
               </Avatar>
-              <span className="hidden md:inline text-sm font-medium">สมชาย</span>
+              <span className="hidden md:inline text-sm font-medium">{firstName}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div className="flex flex-col">
-                <span>สมชาย ใจดี</span>
+                <span>{session.displayName}</span>
                 <span className="text-xs font-normal text-muted-foreground">
-                  somchai@example.com
+                  {session.email}
                 </span>
               </div>
             </DropdownMenuLabel>
@@ -129,8 +134,8 @@ export function Header({ onMenuClick, showMenuButton = true }: HeaderProps) {
             <DropdownMenuItem>โปรไฟล์</DropdownMenuItem>
             <DropdownMenuItem>ตั้งค่า</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
-              ออกจากระบบ
+            <DropdownMenuItem asChild className="text-destructive">
+              <Link href="/auth/logout">ออกจากระบบ</Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
