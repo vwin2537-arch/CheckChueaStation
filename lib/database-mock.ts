@@ -13,6 +13,26 @@ type MockAttendanceRecord = {
   updatedAt: Date
 }
 
+type MockLeaveType = "MONTHLY_QUOTA" | "SICK_LEAVE" | "PERSONAL_LEAVE" | "VACATION_LEAVE" | "MATERNITY_LEAVE"
+
+type MockLeaveStatus = "PENDING" | "APPROVED" | "REJECTED"
+
+type MockLeaveRequest = {
+  id: string
+  userId: string
+  type: MockLeaveType
+  startDate: Date
+  endDate: Date
+  days: number
+  reason: string
+  status: MockLeaveStatus
+  rejectionReason: string | null
+  processedBy: string | null
+  processedAt: Date | null
+  createdAt: Date
+  updatedAt: Date
+}
+
 export const mockUsers = [
   {
     id: '1',
@@ -104,16 +124,16 @@ export const mockAttendance: MockAttendanceRecord[] = [
   },
 ]
 
-export const mockLeaveRequests = [
+export const mockLeaveRequests: MockLeaveRequest[] = [
   {
     id: '1',
     userId: '2',
-    type: 'SICK_LEAVE' as const,
+    type: 'SICK_LEAVE',
     startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
     endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
     days: 2,
     reason: 'ป่วดไข้ มีไข้',
-    status: 'PENDING' as const,
+    status: 'PENDING',
     rejectionReason: null,
     processedBy: null,
     processedAt: null,
@@ -123,15 +143,45 @@ export const mockLeaveRequests = [
   {
     id: '2',
     userId: '3',
-    type: 'PERSONAL_LEAVE' as const,
+    type: 'PERSONAL_LEAVE',
     startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
     endDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
     days: 1,
     reason: 'ติดธุระส่วนตัว',
-    status: 'APPROVED' as const,
+    status: 'APPROVED',
     rejectionReason: null,
     processedBy: '1',
     processedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: '3',
+    userId: '1',
+    type: 'MONTHLY_QUOTA',
+    startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
+    endDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
+    days: 1,
+    reason: 'หยุดประจำเดือน',
+    status: 'APPROVED',
+    rejectionReason: null,
+    processedBy: '1',
+    processedAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: '4',
+    userId: '2',
+    type: 'VACATION_LEAVE',
+    startDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+    endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
+    days: 5,
+    reason: 'พักผ่อนทะเลทั่ง',
+    status: 'PENDING',
+    rejectionReason: null,
+    processedBy: null,
+    processedAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   },

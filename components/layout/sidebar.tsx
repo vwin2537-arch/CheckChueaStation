@@ -29,6 +29,7 @@ interface SidebarProps {
 const adminNavItems = [
   { title: "แดชบอร์ด", href: "/dashboard", icon: LayoutDashboard },
   { title: "Real-time", href: "/dashboard/realtime", icon: Calendar },
+  { title: "Analytics", href: "/dashboard/analytics", icon: FileText },
   { title: "เจ้าหน้าที่", href: "/dashboard/admin/staff", icon: Users },
   { title: "จุดสแกน", href: "/dashboard/admin/stations", icon: MapPin },
   { title: "อนุมัติลา", href: "/dashboard/admin/leave-approval", icon: Calendar },
