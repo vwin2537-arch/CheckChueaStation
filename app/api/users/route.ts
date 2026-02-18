@@ -4,6 +4,18 @@ import bcrypt from 'bcryptjs'
 
 export async function GET(request: NextRequest) {
   try {
+    // Check if database is available
+    if (!prisma) {
+      // Return mock data fallback
+      const { mockUsers } = await import('@/lib/database-mock')
+      return NextResponse.json({
+        success: true,
+        data: mockUsers,
+        total: mockUsers.length,
+        source: 'mock'
+      })
+    }
+
     const { searchParams } = new URL(request.url)
     const role = searchParams.get('role')
     const isActive = searchParams.get('isActive')
@@ -38,14 +50,28 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: users,
-      total: users.length
+      total: users.length,
+      source: 'database'
     })
   } catch (error) {
     console.error('Users GET error:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch users' },
-      { status: 500 }
-    )
+    
+    // Fallback to mock data on error
+    try {
+      const { mockUsers } = await import('@/lib/database-mock')
+      return NextResponse.json({
+        success: true,
+        data: mockUsers,
+        total: mockUsers.length,
+        source: 'mock-fallback',
+        error: 'Database unavailable, using mock data'
+      })
+    } catch (mockError) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to fetch users and mock data unavailable' },
+        { status: 500 }
+      )
+    }
   }
 }
 

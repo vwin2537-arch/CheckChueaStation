@@ -1,0 +1,24 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "npm start"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
+
+[env]
+NODE_ENV = "production"
+
+[[services]]
+name = "app"
+source = "."
+healthcheckPath = "/api/health"
+healthcheckTimeout = 100
+healthcheckInterval = 25
+
+[[services.ports]]
+port = 3000
+handlers = ["http"]
+
+[services.variables]
+PORT = "3000"
