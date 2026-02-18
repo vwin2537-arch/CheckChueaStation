@@ -1,4 +1,18 @@
 // Mock database for development without PostgreSQL
+type MockAttendanceStatus = "ON_TIME" | "LATE" | "VERY_LATE" | "ABSENT" | "LEAVE"
+
+type MockAttendanceRecord = {
+  id: string
+  userId: string
+  stationId: string
+  checkInAt: Date
+  checkOutAt: Date | null
+  status: MockAttendanceStatus
+  notes: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
 export const mockUsers = [
   {
     id: '1',
@@ -54,7 +68,7 @@ export const mockStations = [
   },
 ]
 
-export const mockAttendance = [
+export const mockAttendance: MockAttendanceRecord[] = [
   {
     id: '1',
     userId: '2',
@@ -72,7 +86,18 @@ export const mockAttendance = [
     stationId: '1',
     checkInAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
     checkOutAt: null,
-    status: 'ON_TIME' as const,
+    status: 'ON_TIME',
+    notes: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: '3',
+    userId: '1',
+    stationId: '2',
+    checkInAt: new Date(Date.now() - 65 * 60 * 1000),
+    checkOutAt: null,
+    status: 'LATE',
     notes: null,
     createdAt: new Date(),
     updatedAt: new Date(),
